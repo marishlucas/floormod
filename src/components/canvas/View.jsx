@@ -4,6 +4,7 @@ import { forwardRef, Suspense, useImperativeHandle, useRef } from 'react';
 import { View as ViewImpl } from '@react-three/drei';
 
 import { Three } from '@/helpers/components/Three';
+import Camera from './Camera';
 
 export const Common = ({ color }) => (
   <Suspense fallback={null}>
@@ -39,6 +40,7 @@ const View = forwardRef(({ children, orbit, ...props }, ref) => {
       />
       <Three>
         <ViewImpl track={localRef}>
+          <Camera />
           {children}
         </ViewImpl>
       </Three>
