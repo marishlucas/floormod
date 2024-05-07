@@ -42,13 +42,19 @@ const Common = dynamic(
 );
 
 export default function Page() {
+  const { setViewMode } = useStore();
+  const viewMode = useStore((state) => state.viewMode);
   return (
     <>
+      <div className='fixed top-0'>
+        <button onClick={() => setViewMode('2D')}>2D View</button>
+        <button onClick={() => setViewMode('3D')}>3D View</button>
       </div>
       <View
         orbit={true}
         className='h-full w-full'
       >
+        {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
         <Suspense fallback={null}>
           <Common />
         </Suspense>
