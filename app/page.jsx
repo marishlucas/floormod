@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import WallPlacer from '@/components/WallPlacer'
 import WallMenu from '@/components/WallMenu'
@@ -33,6 +32,7 @@ export default function Page() {
   const viewMode = useStore((state) => state.viewMode)
   const [selectedWallType, setSelectedWallType] = useState('solid')
   const [dimensions, setDimensions] = useState({ width: 1, height: 2, thickness: 0.2 })
+  const [mode, setMode] = useState('placement') // New state for mode
 
   return (
     <>
@@ -40,11 +40,19 @@ export default function Page() {
         <button onClick={() => setViewMode('2D')}>2D View</button>
         <button onClick={() => setViewMode('3D')}>3D View</button>
       </div>
+      <div className='fixed top-12'>
+        <button onClick={() => setMode('placement')}>Placement Mode</button>
+        <button onClick={() => setMode('modification')}>Modification Mode</button>
+      </div>
       <WallMenu onSelectWallType={setSelectedWallType} />
       <WallDimensionsMenu dimensions={dimensions} setDimensions={setDimensions} />
       <View orbit={true} className='size-full'>
         {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
-        <WallPlacer selectedWallType={selectedWallType} dimensions={dimensions} />
+        <WallPlacer
+          selectedWallType={selectedWallType}
+          dimensions={dimensions}
+          mode={mode} // Pass mode to WallPlacer
+        />
         <Suspense fallback={null}>
           <Common />
         </Suspense>
