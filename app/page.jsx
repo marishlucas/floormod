@@ -13,14 +13,7 @@ const View = dynamic(() => import('@/components/canvas/View').then((mod) => mod.
   ssr: false,
   loading: () => (
     <div className='flex h-96 w-full flex-col items-center justify-center'>
-      <svg className='-ml-1 mr-3 size-5 animate-spin text-black' fill='none' viewBox='0 0 24 24'>
-        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-        <path
-          className='opacity-75'
-          fill='currentColor'
-          d='M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-        />
-      </svg>
+      <span className='loading loading-spinner loading-lg'></span>
     </div>
   ),
 })
@@ -32,31 +25,46 @@ export default function Page() {
   const viewMode = useStore((state) => state.viewMode)
   const [selectedWallType, setSelectedWallType] = useState('solid')
   const [dimensions, setDimensions] = useState({ width: 1, height: 2, thickness: 0.2 })
-  const [mode, setMode] = useState('placement') // New state for mode
+  const [mode, setMode] = useState('placement')
 
   return (
-    <>
-      <div className='fixed top-0'>
-        <button onClick={() => setViewMode('2D')}>2D View</button>
-        <button onClick={() => setViewMode('3D')}>3D View</button>
+    <div className='relative h-screen w-full overflow-hidden bg-base-200'>
+      {/* Top navigation bar */}
+      <div className='fixed inset-x-0 top-0 z-50 bg-base-100 p-4 shadow-md'>
+        <div className='flex items-center justify-between'>
+          <div>
+            <button className='btn btn-primary btn-sm mr-2' onClick={() => setViewMode('2D')}>
+              2D View
+            </button>
+            <button className='btn btn-secondary btn-sm' onClick={() => setViewMode('3D')}>
+              3D View
+            </button>
+          </div>
+          <div>
+            <button className='btn btn-accent btn-sm mr-2' onClick={() => setMode('placement')}>
+              Placement Mode
+            </button>
+            <button className='btn btn-info btn-sm' onClick={() => setMode('modification')}>
+              Modification Mode
+            </button>
+          </div>
+        </div>
       </div>
-      <div className='fixed top-12'>
-        <button onClick={() => setMode('placement')}>Placement Mode</button>
-        <button onClick={() => setMode('modification')}>Modification Mode</button>
-      </div>
+
+      {/* Side menus */}
       <WallMenu onSelectWallType={setSelectedWallType} />
       <WallDimensionsMenu dimensions={dimensions} setDimensions={setDimensions} />
-      <View orbit={true} className='size-full'>
-        {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
-        <WallPlacer
-          selectedWallType={selectedWallType}
-          dimensions={dimensions}
-          mode={mode} // Pass mode to WallPlacer
-        />
-        <Suspense fallback={null}>
-          <Common />
-        </Suspense>
-      </View>
-    </>
+
+      {/* Canvas */}
+      <div className='absolute inset-x-0 bottom-0 top-16'>
+        <View orbit className='size-full'>
+          {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
+          <WallPlacer selectedWallType={selectedWallType} dimensions={dimensions} mode={mode} />
+          <Suspense fallback={null}>
+            <Common />
+          </Suspense>
+        </View>
+      </div>
+    </div>
   )
 }

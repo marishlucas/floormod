@@ -14,6 +14,8 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
   const [mousePosition, setMousePosition] = useState(new THREE.Vector3())
   const [rotation, setRotation] = useState(0)
   const [selectedWall, setSelectedWall] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
   const cellSize = GRID_SIZE / GRID_DIVISIONS
   const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), [])
@@ -32,14 +34,20 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
   const updateMousePosition = useCallback(
     (event) => {
       if (viewMode !== '2D') return
+
+      const rect = event.target.getBoundingClientRect()
       const mouse = new THREE.Vector2(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1,
       )
+
       raycaster.setFromCamera(mouse, camera)
       const intersectionPoint = new THREE.Vector3()
-      raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
-      setMousePosition(snapToCell(intersectionPoint.x, intersectionPoint.z))
+      const intersect = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
+
+      if (intersect) {
+        setMousePosition(snapToCell(intersectionPoint.x, intersectionPoint.z))
+      }
     },
     [camera, raycaster, groundPlane, snapToCell, viewMode],
   )
@@ -49,12 +57,22 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     return () => window.removeEventListener('mousemove', updateMousePosition)
   }, [updateMousePosition])
 
+  useEffect(() => {
+    if (previewWall) {
+      previewWall.visible = false
+    }
+  }, [mode, previewWall])
+
   useFrame(() => {
-    if (!previewWall || mode !== 'placement' || viewMode !== '2D') return
-    previewWall.position.copy(mousePosition)
-    previewWall.rotation.y = rotation
-    previewWall.scale.set(dimensions.width, dimensions.height, dimensions.thickness)
-    previewWall.visible = true
+    if (!previewWall) return
+    if (mode === 'placement' && viewMode === '2D') {
+      previewWall.position.copy(mousePosition)
+      previewWall.rotation.y = rotation
+      previewWall.scale.set(dimensions.width, dimensions.height, dimensions.thickness)
+      previewWall.visible = true
+    } else {
+      previewWall.visible = false
+    }
   })
 
   const handlePlacement = useCallback(
@@ -92,9 +110,38 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
   const onPointerDown = useCallback(
     (event) => {
       if (viewMode !== '2D') return
-      mode === 'placement' ? handlePlacement(event) : handleModification(event)
+      setIsDragging(false)
+      setDragStart({ x: event.clientX, y: event.clientY })
     },
-    [viewMode, mode, handlePlacement, handleModification],
+    [viewMode],
+  )
+
+  const onPointerUp = useCallback(
+    (event) => {
+      if (viewMode !== '2D') return
+      if (!isDragging) {
+        if (mode === 'placement') {
+          handlePlacement(event)
+        } else {
+          handleModification(event)
+        }
+      }
+      setIsDragging(false)
+    },
+    [viewMode, mode, isDragging, handlePlacement, handleModification],
+  )
+
+  const onPointerMove = useCallback(
+    (event) => {
+      if (event.buttons !== 0) {
+        const dx = event.clientX - dragStart.x
+        const dy = event.clientY - dragStart.y
+        if (Math.sqrt(dx * dx + dy * dy) > 5) {
+          setIsDragging(true)
+        }
+      }
+    },
+    [dragStart],
   )
 
   useEffect(() => {
@@ -116,7 +163,13 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
 
   return (
     <>
-      <mesh onPointerDown={onPointerDown} position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerMove={onPointerMove}
+        position={[0, 0, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
         <planeGeometry args={[GRID_SIZE, GRID_SIZE]} />
         <meshBasicMaterial color='transparent' visible={false} />
       </mesh>
@@ -135,7 +188,9 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
           />
           {mode === 'modification' && selectedWall === index && (
             <Html>
-              <button onClick={handleDeleteWall}>Delete</button>
+              <button onClick={handleDeleteWall} className='btn btn-error btn-sm'>
+                Delete
+              </button>
             </Html>
           )}
         </Box>

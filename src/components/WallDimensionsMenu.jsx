@@ -4,56 +4,55 @@ import { GRID_SIZE, GRID_DIVISIONS } from '@/constants/gridConfig'
 const WallDimensionsMenu = ({ dimensions, setDimensions }) => {
   const cellSize = GRID_SIZE / GRID_DIVISIONS
 
-  const roundToGrid = (value) => {
-    return Math.round(value / cellSize) * cellSize
-  }
-
-  const formatValue = (value) => {
-    return Number(value.toFixed(4))
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target
-    const parsedValue = parseFloat(value)
-    if (!isNaN(parsedValue)) {
-      const newValue = Math.max(cellSize, roundToGrid(parsedValue))
-      setDimensions((prev) => ({ ...prev, [name]: formatValue(newValue) }))
-    }
+    const newValue = Math.max(cellSize, Math.round(parseFloat(value) / cellSize) * cellSize)
+    setDimensions((prev) => ({ ...prev, [name]: newValue }))
   }
 
   return (
-    <div style={{ position: 'fixed', top: '100px', left: '10px', zIndex: 1000 }}>
-      <div>
-        <label>Width: </label>
+    <div className='fixed right-4 top-20 z-40 rounded-lg bg-base-100 p-4 shadow-lg'>
+      <h2 className='mb-2 text-lg font-bold'>Wall Dimensions</h2>
+      <div className='form-control'>
+        <label className='label'>
+          <span className='label-text'>Width:</span>
+        </label>
         <input
           type='number'
           name='width'
-          value={formatValue(dimensions.width)}
+          value={dimensions.width}
           onChange={handleChange}
           step={cellSize}
           min={cellSize}
+          className='input input-sm input-bordered w-full max-w-xs'
         />
       </div>
-      <div>
-        <label>Height: </label>
+      <div className='form-control'>
+        <label className='label'>
+          <span className='label-text'>Height:</span>
+        </label>
         <input
           type='number'
           name='height'
-          value={formatValue(dimensions.height)}
+          value={dimensions.height}
           onChange={handleChange}
           step={cellSize}
           min={cellSize}
+          className='input input-sm input-bordered w-full max-w-xs'
         />
       </div>
-      <div>
-        <label>Thickness: </label>
+      <div className='form-control'>
+        <label className='label'>
+          <span className='label-text'>Thickness:</span>
+        </label>
         <input
           type='number'
           name='thickness'
-          value={formatValue(dimensions.thickness)}
+          value={dimensions.thickness}
           onChange={handleChange}
           step={cellSize}
           min={cellSize}
+          className='input input-sm input-bordered w-full max-w-xs'
         />
       </div>
     </div>
