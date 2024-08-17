@@ -2,7 +2,7 @@
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const Grid = ({ size = 10, divisions = 10 }) => {
+const Grid = ({ size = 10, divisions = 50 }) => {
   const { scene } = useThree();
 
   const gridHelper = new THREE.GridHelper(
