@@ -33,8 +33,6 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
 
   const updateMousePosition = useCallback(
     (event) => {
-      if (viewMode !== '2D') return
-
       const canvas = gl.domElement
       const rect = canvas.getBoundingClientRect()
 
@@ -51,7 +49,7 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
         setMousePosition(snapToCell(intersectionPoint.x, intersectionPoint.z))
       }
     },
-    [camera, raycaster, groundPlane, snapToCell, viewMode, gl],
+    [camera, raycaster, groundPlane, snapToCell, gl],
   )
 
   useEffect(() => {
@@ -67,7 +65,7 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
 
   useFrame(() => {
     if (!previewWall) return
-    if (mode === 'placement' && viewMode === '2D') {
+    if (mode === 'placement') {
       previewWall.position.copy(mousePosition)
       previewWall.rotation.y = rotation
       previewWall.scale.set(dimensions.width, dimensions.height, dimensions.thickness)
@@ -109,18 +107,13 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     [raycaster, scene.children],
   )
 
-  const onPointerDown = useCallback(
-    (event) => {
-      if (viewMode !== '2D') return
-      setIsDragging(false)
-      setDragStart({ x: event.clientX, y: event.clientY })
-    },
-    [viewMode],
-  )
+  const onPointerDown = useCallback((event) => {
+    setIsDragging(false)
+    setDragStart({ x: event.clientX, y: event.clientY })
+  }, [])
 
   const onPointerUp = useCallback(
     (event) => {
-      if (viewMode !== '2D') return
       if (!isDragging) {
         if (mode === 'placement') {
           handlePlacement(event)
@@ -130,7 +123,7 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
       }
       setIsDragging(false)
     },
-    [viewMode, mode, isDragging, handlePlacement, handleModification],
+    [mode, isDragging, handlePlacement, handleModification],
   )
 
   const onPointerMove = useCallback(
