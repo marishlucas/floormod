@@ -1,2 +1,2 @@
-export const GRID_SIZE = 10
-export const GRID_DIVISIONS = 50
+export const GRID_SIZE = 20
+export const GRID_DIVISIONS = 20

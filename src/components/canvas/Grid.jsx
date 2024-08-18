@@ -1,19 +1,15 @@
 // components/canvas/Grid.jsx
-import { useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import { GRID_DIVISIONS, GRID_SIZE } from '@/constants/gridConfig'
+import { useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 
-const Grid = ({ size = 10, divisions = 50 }) => {
-  const { scene } = useThree();
+const Grid = () => {
+  const { scene } = useThree()
 
-  const gridHelper = new THREE.GridHelper(
-    size,
-    divisions,
-    '#aaaaaa',
-    '#cccccc',
-  );
-  scene.add(gridHelper);
+  const gridHelper = new THREE.GridHelper(GRID_SIZE, GRID_DIVISIONS, '#aaaaaa', '#cccccc')
+  scene.add(gridHelper)
 
-  return null;
-};
+  return null
+}
 
-export default Grid;
+export default Grid

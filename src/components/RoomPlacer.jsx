@@ -20,74 +20,80 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
   const cellSize = GRID_SIZE / GRID_DIVISIONS
   const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), [])
 
-  const getRoomWalls = useCallback(
-    (type, size, position, rotation, wallWidth) => {
-      const baseSize = { small: 2, medium: 3, large: 4 }
-      const width = baseSize[size] * cellSize
+  const snapToGrid = useCallback(
+    (value) => {
+      return Math.round(value / cellSize) * cellSize
+    },
+    [cellSize],
+  )
 
-      // Snap to grid
-      const snapToGrid = (value) => {
-        return Math.round(value / cellSize) * cellSize
-      }
+  const getRoomWalls = useCallback(
+    (type, size, position, rotation) => {
+      const baseSize = { small: 4, medium: 6, large: 10 }
+      const width = baseSize[size]
 
       const snappedPosition = new THREE.Vector2(snapToGrid(position.x), snapToGrid(position.y))
 
-      // Function to extend wall endpoints
-      const extendWall = (start, end) => {
-        const direction = end.clone().sub(start).normalize()
-        const halfWallWidth = wallWidth / 2
-        return {
-          start: start.clone().sub(direction.multiplyScalar(halfWallWidth)),
-          end: end.clone().add(direction.multiplyScalar(halfWallWidth)),
-        }
-      }
+      // Calculate the offset to center the room
+      const offsetX = (-width * cellSize) / 2
+      const offsetY = (-width * cellSize) / 2
 
       let walls = []
       switch (type) {
         case 'square':
           walls = [
-            { start: new THREE.Vector2(-width / 2, -width / 2), end: new THREE.Vector2(width / 2, -width / 2) },
-            { start: new THREE.Vector2(width / 2, -width / 2), end: new THREE.Vector2(width / 2, width / 2) },
-            { start: new THREE.Vector2(width / 2, width / 2), end: new THREE.Vector2(-width / 2, width / 2) },
-            { start: new THREE.Vector2(-width / 2, width / 2), end: new THREE.Vector2(-width / 2, -width / 2) },
+            { start: new THREE.Vector2(offsetX, offsetY), end: new THREE.Vector2(offsetX + width * cellSize, offsetY) },
+            {
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY),
+              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + width * cellSize),
+            },
+            {
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
+            },
+            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
           ]
           break
         case 'rectangle':
-          const rectWidth = width * 1.5
-          const rectHeight = width
           walls = [
             {
-              start: new THREE.Vector2(-rectWidth / 2, -rectHeight / 2),
-              end: new THREE.Vector2(rectWidth / 2, -rectHeight / 2),
+              start: new THREE.Vector2(offsetX, offsetY),
+              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY),
             },
             {
-              start: new THREE.Vector2(rectWidth / 2, -rectHeight / 2),
-              end: new THREE.Vector2(rectWidth / 2, rectHeight / 2),
+              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY),
+              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY + width * cellSize),
             },
             {
-              start: new THREE.Vector2(rectWidth / 2, rectHeight / 2),
-              end: new THREE.Vector2(-rectWidth / 2, rectHeight / 2),
+              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
             },
-            {
-              start: new THREE.Vector2(-rectWidth / 2, rectHeight / 2),
-              end: new THREE.Vector2(-rectWidth / 2, -rectHeight / 2),
-            },
+            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
           ]
           break
         case 'L-shape':
           walls = [
-            { start: new THREE.Vector2(-width / 2, -width / 2), end: new THREE.Vector2(width / 2, -width / 2) },
-            { start: new THREE.Vector2(width / 2, -width / 2), end: new THREE.Vector2(width / 2, 0) },
-            { start: new THREE.Vector2(width / 2, 0), end: new THREE.Vector2(0, 0) },
-            { start: new THREE.Vector2(0, 0), end: new THREE.Vector2(0, width / 2) },
-            { start: new THREE.Vector2(0, width / 2), end: new THREE.Vector2(-width / 2, width / 2) },
-            { start: new THREE.Vector2(-width / 2, width / 2), end: new THREE.Vector2(-width / 2, -width / 2) },
+            { start: new THREE.Vector2(offsetX, offsetY), end: new THREE.Vector2(offsetX + width * cellSize, offsetY) },
+            {
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY),
+              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + (width * cellSize) / 2),
+            },
+            {
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY + (width * cellSize) / 2),
+              end: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + (width * cellSize) / 2),
+            },
+            {
+              start: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + (width * cellSize) / 2),
+              end: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + width * cellSize),
+            },
+            {
+              start: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
+            },
+            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
           ]
           break
       }
-
-      // Extend walls
-      walls = walls.map((wall) => extendWall(wall.start, wall.end))
 
       // Apply rotation and position
       const rotatePoint = (point) => {
@@ -103,7 +109,7 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
 
       return walls
     },
-    [cellSize],
+    [cellSize, snapToGrid],
   )
 
   const updateMousePosition = useCallback(
@@ -121,10 +127,10 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
       const intersect = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
 
       if (intersect) {
-        setMousePosition(new THREE.Vector2(intersectionPoint.x, intersectionPoint.z))
+        setMousePosition(new THREE.Vector2(snapToGrid(intersectionPoint.x), snapToGrid(intersectionPoint.z)))
       }
     },
-    [camera, raycaster, groundPlane, gl],
+    [camera, raycaster, groundPlane, gl, snapToGrid],
   )
 
   useEffect(() => {
@@ -139,7 +145,7 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
     const newPreview = new THREE.Group()
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.5, transparent: true })
 
-    const walls = getRoomWalls(selectedRoomType, selectedRoomSize, mousePosition, rotation, wallDimensions.width)
+    const walls = getRoomWalls(selectedRoomType, selectedRoomSize, mousePosition, rotation)
     walls.forEach((wall) => {
       const wallMesh = new THREE.Mesh(
         new THREE.BoxGeometry(wall.start.distanceTo(wall.end), wallDimensions.height, wallDimensions.width),
@@ -175,14 +181,14 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
           size: selectedRoomSize,
           position: mousePosition,
           rotation,
-          walls: getRoomWalls(selectedRoomType, selectedRoomSize, mousePosition, rotation, wallDimensions.width),
+          walls: getRoomWalls(selectedRoomType, selectedRoomSize, mousePosition, rotation),
         }
         addRoom(newRoom)
       } else if (event.button === 2) {
         setRotation((prevRotation) => (prevRotation + Math.PI / 2) % (2 * Math.PI))
       }
     },
-    [addRoom, mousePosition, selectedRoomType, selectedRoomSize, rotation, getRoomWalls, wallDimensions.width],
+    [addRoom, mousePosition, selectedRoomType, selectedRoomSize, rotation, getRoomWalls],
   )
 
   const handleModification = useCallback(

@@ -1,5 +1,6 @@
 import { forwardRef, Suspense, useImperativeHandle, useRef } from 'react'
 import { View as ViewImpl } from '@react-three/drei'
+import { Environment, Stars } from '@react-three/drei'
 
 import { Three } from '@/helpers/components/Three'
 import useStore from '@/helpers/store'
@@ -8,9 +9,21 @@ import Camera from './Camera'
 export const Common = ({ color }) => (
   <Suspense fallback={null}>
     {color && <color attach='background' args={[color]} />}
-    <ambientLight />
-    <pointLight position={[20, 30, 10]} intensity={20} decay={0.1} />
-    <pointLight position={[-10, -10, -10]} color='red' decay={0.5} />
+
+    {/* Enhanced lighting */}
+    <ambientLight intensity={0.5} />
+    <directionalLight
+      position={[10, 10, 5]}
+      intensity={1}
+      castShadow
+      shadow-mapSize-width={1024}
+      shadow-mapSize-height={1024}
+    />
+    <pointLight position={[-10, -10, -10]} intensity={0.5} />
+
+    {/* Environment and atmosphere */}
+    <Environment preset='sunset' />
+    <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade />
   </Suspense>
 )
 
