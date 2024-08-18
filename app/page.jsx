@@ -8,6 +8,7 @@ import useStore from '@/helpers/store'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import WallDimensionsMenu from '@/components/WallDimensionsMenu'
+import Navbar from '@/components/Navbar'
 
 const View = dynamic(() => import('@/components/canvas/View').then((mod) => mod.View), {
   ssr: false,
@@ -30,29 +31,15 @@ export default function Page() {
   return (
     <div className='relative h-screen w-full overflow-hidden bg-base-200'>
       {/* Top navigation bar */}
-      <div className='absolute inset-x-0 top-0 z-50 bg-base-100 p-4 shadow-md'>
-        <div className='flex items-center justify-between'>
-          <div>
-            <button className='btn btn-primary btn-sm mr-2' onClick={() => setViewMode('2D')}>
-              2D View
-            </button>
-            <button className='btn btn-secondary btn-sm' onClick={() => setViewMode('3D')}>
-              3D View
-            </button>
-          </div>
-          <div>
-            <button className='btn btn-accent btn-sm mr-2' onClick={() => setMode('placement')}>
-              Placement Mode
-            </button>
-            <button className='btn btn-info btn-sm' onClick={() => setMode('modification')}>
-              Modification Mode
-            </button>
-          </div>
-        </div>
-      </div>
 
+      <Navbar viewMode={viewMode} setViewMode={setViewMode} mode={mode} setMode={setMode} />
       {/* Side menu */}
-      <RoomMenu onSelectRoomType={setSelectedRoomType} onSelectRoomSize={setSelectedRoomSize} />
+      <RoomMenu
+        roomType={selectedRoomType}
+        roomSize={selectedRoomSize}
+        onSelectRoomType={setSelectedRoomType}
+        onSelectRoomSize={setSelectedRoomSize}
+      />
       <WallDimensionsMenu />
 
       {/* Canvas */}
