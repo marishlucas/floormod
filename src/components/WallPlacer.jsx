@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Box, Html } from '@react-three/drei'
+import { Box, Html, Line, Text } from '@react-three/drei'
 import useStore from '../helpers/store'
 import * as THREE from 'three'
 import { GRID_SIZE, GRID_DIVISIONS } from '@/constants/gridConfig'
@@ -163,6 +163,35 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     }
   }, [removeWall, selectedWall])
 
+  const Wall = useCallback(
+    ({ wall, index }) => {
+      return (
+        <group key={index}>
+          <Box
+            position={[wall.x, wall.y, wall.z]}
+            rotation={[0, wall.rotation, 0]}
+            args={[wall.dimensions.width, wall.dimensions.height, wall.dimensions.thickness]}
+            userData={{ isWall: true, wallIndex: index }}
+          >
+            <meshStandardMaterial
+              color={viewMode === '3D' ? 'red' : 'blue'}
+              opacity={wall.type === 'window' ? 0.5 : 1}
+              transparent={wall.type === 'window'}
+            />
+          </Box>
+          {mode === 'modification' && selectedWall === index && (
+            <Html position={[wall.x, wall.y + wall.dimensions.height / 2, wall.z]}>
+              <button onClick={handleDeleteWall} className='btn btn-error btn-sm'>
+                Delete
+              </button>
+            </Html>
+          )}
+        </group>
+      )
+    },
+    [viewMode, mode, selectedWall, handleDeleteWall],
+  )
+
   return (
     <>
       <mesh
@@ -176,26 +205,7 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
         <meshBasicMaterial color='transparent' visible={false} />
       </mesh>
       {walls.map((wall, index) => (
-        <Box
-          key={index}
-          position={[wall.x, wall.y, wall.z]}
-          rotation={[0, wall.rotation, 0]}
-          args={[wall.dimensions.width, wall.dimensions.height, wall.dimensions.thickness]}
-          userData={{ isWall: true, wallIndex: index }}
-        >
-          <meshStandardMaterial
-            color={viewMode === '3D' ? 'white' : 'blue'}
-            opacity={wall.type === 'window' ? 0.5 : 1}
-            transparent={wall.type === 'window'}
-          />
-          {mode === 'modification' && selectedWall === index && (
-            <Html>
-              <button onClick={handleDeleteWall} className='btn btn-error btn-sm'>
-                Delete
-              </button>
-            </Html>
-          )}
-        </Box>
+        <Wall key={index} wall={wall} index={index} />
       ))}
     </>
   )
