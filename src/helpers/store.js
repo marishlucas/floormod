@@ -4,7 +4,7 @@ const useStore = create((set, get) => ({
   viewMode: '2D',
   cameraSettings: {
     '3D': { position: [0, 5, 10], fov: 50 },
-    '2D': { position: [0, 100, 0], zoom: 100 },
+    '2D': { position: [0, 100, 0], zoom: 30 },
   },
 
   setViewMode: (mode) => set({ viewMode: mode }),
