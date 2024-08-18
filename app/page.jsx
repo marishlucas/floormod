@@ -1,12 +1,11 @@
 'use client'
-import { useState } from 'react'
+import React, { useState, Suspense } from 'react'
+import dynamic from 'next/dynamic'
 import RoomPlacer from '@/components/RoomPlacer'
 import RoomMenu from '@/components/RoomMenu'
 import Scene2D from '@/components/canvas/Scene2D'
 import Scene3D from '@/components/canvas/Scene3D'
 import useStore from '@/helpers/store'
-import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
 import WallDimensionsMenu from '@/components/WallDimensionsMenu'
 import Navbar from '@/components/Navbar'
 
@@ -30,20 +29,19 @@ export default function Page() {
 
   return (
     <div className='relative h-screen w-full overflow-hidden bg-base-200'>
-      {/* Top navigation bar */}
-
       <Navbar viewMode={viewMode} setViewMode={setViewMode} mode={mode} setMode={setMode} />
-      {/* Side menu */}
-      <RoomMenu
-        roomType={selectedRoomType}
-        roomSize={selectedRoomSize}
-        onSelectRoomType={setSelectedRoomType}
-        onSelectRoomSize={setSelectedRoomSize}
-      />
-      <WallDimensionsMenu />
 
-      {/* Canvas */}
-      <View orbit className='size-full'>
+      <div className='flex flex-col lg:flex-row'>
+        <RoomMenu
+          roomType={selectedRoomType}
+          roomSize={selectedRoomSize}
+          onSelectRoomType={setSelectedRoomType}
+          onSelectRoomSize={setSelectedRoomSize}
+        />
+        <WallDimensionsMenu />
+      </div>
+
+      <View orbit className='h-[calc(100vh-4rem)] w-full'>
         {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
         <RoomPlacer selectedRoomType={selectedRoomType} selectedRoomSize={selectedRoomSize} mode={mode} />
         <Suspense fallback={null}>
