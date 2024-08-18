@@ -8,7 +8,7 @@ import { GRID_SIZE, GRID_DIVISIONS } from '@/constants/gridConfig'
 const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
   const { addWall, removeWall, walls } = useStore()
   const viewMode = useStore((state) => state.viewMode)
-  const { raycaster, camera, scene } = useThree()
+  const { raycaster, camera, scene, gl } = useThree()
 
   const [previewWall, setPreviewWall] = useState(null)
   const [mousePosition, setMousePosition] = useState(new THREE.Vector3())
@@ -35,7 +35,9 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     (event) => {
       if (viewMode !== '2D') return
 
-      const rect = event.target.getBoundingClientRect()
+      const canvas = gl.domElement
+      const rect = canvas.getBoundingClientRect()
+
       const mouse = new THREE.Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         -((event.clientY - rect.top) / rect.height) * 2 + 1,
@@ -49,7 +51,7 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
         setMousePosition(snapToCell(intersectionPoint.x, intersectionPoint.z))
       }
     },
-    [camera, raycaster, groundPlane, snapToCell, viewMode],
+    [camera, raycaster, groundPlane, snapToCell, viewMode, gl],
   )
 
   useEffect(() => {

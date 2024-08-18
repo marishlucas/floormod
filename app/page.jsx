@@ -30,7 +30,7 @@ export default function Page() {
   return (
     <div className='relative h-screen w-full overflow-hidden bg-base-200'>
       {/* Top navigation bar */}
-      <div className='fixed inset-x-0 top-0 z-50 bg-base-100 p-4 shadow-md'>
+      <div className='absolute inset-x-0 top-0 z-50 bg-base-100 p-4 shadow-md'>
         <div className='flex items-center justify-between'>
           <div>
             <button className='btn btn-primary btn-sm mr-2' onClick={() => setViewMode('2D')}>
@@ -56,15 +56,13 @@ export default function Page() {
       <WallDimensionsMenu dimensions={dimensions} setDimensions={setDimensions} />
 
       {/* Canvas */}
-      <div className='absolute inset-x-0 bottom-0 top-16'>
-        <View orbit className='size-full'>
-          {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
-          <WallPlacer selectedWallType={selectedWallType} dimensions={dimensions} mode={mode} />
-          <Suspense fallback={null}>
-            <Common />
-          </Suspense>
-        </View>
-      </div>
+      <View orbit className='size-full'>
+        {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
+        <WallPlacer selectedWallType={selectedWallType} dimensions={dimensions} mode={mode} />
+        <Suspense fallback={null}>
+          <Common />
+        </Suspense>
+      </View>
     </div>
   )
 }
