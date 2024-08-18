@@ -1,13 +1,12 @@
 import React from 'react'
-import { GRID_SIZE, GRID_DIVISIONS } from '@/constants/gridConfig'
+import useStore from '../helpers/store'
 
-const WallDimensionsMenu = ({ dimensions, setDimensions }) => {
-  const cellSize = GRID_SIZE / GRID_DIVISIONS
+const WallDimensionsMenu = () => {
+  const { wallDimensions, setWallDimensions } = useStore()
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    const newValue = Math.max(cellSize, Math.round(parseFloat(value) / cellSize) * cellSize)
-    setDimensions((prev) => ({ ...prev, [name]: newValue }))
+    setWallDimensions({ [name]: parseFloat(value) })
   }
 
   return (
@@ -15,44 +14,30 @@ const WallDimensionsMenu = ({ dimensions, setDimensions }) => {
       <h2 className='mb-2 text-lg font-bold'>Wall Dimensions</h2>
       <div className='form-control'>
         <label className='label'>
-          <span className='label-text'>Width:</span>
-        </label>
-        <input
-          type='number'
-          name='width'
-          value={dimensions.width}
-          onChange={handleChange}
-          step={cellSize}
-          min={cellSize}
-          className='input input-sm input-bordered w-full max-w-xs'
-        />
-      </div>
-      <div className='form-control'>
-        <label className='label'>
           <span className='label-text'>Height:</span>
         </label>
         <input
           type='number'
           name='height'
-          value={dimensions.height}
+          value={wallDimensions.height}
           onChange={handleChange}
-          step={cellSize}
-          min={cellSize}
-          className='input input-sm input-bordered w-full max-w-xs'
+          step={0.1}
+          min={0.1}
+          className='input input-bordered input-sm w-full max-w-xs'
         />
       </div>
       <div className='form-control'>
         <label className='label'>
-          <span className='label-text'>Thickness:</span>
+          <span className='label-text'>Width:</span>
         </label>
         <input
           type='number'
-          name='thickness'
-          value={dimensions.thickness}
+          name='width'
+          value={wallDimensions.width}
           onChange={handleChange}
-          step={cellSize}
-          min={cellSize}
-          className='input input-sm input-bordered w-full max-w-xs'
+          step={0.1}
+          min={0.1}
+          className='input input-bordered input-sm w-full max-w-xs'
         />
       </div>
     </div>

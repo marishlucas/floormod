@@ -1,7 +1,7 @@
 import create from 'zustand'
 
 const useStore = create((set, get) => ({
-  viewMode: '2D', // Default to 3D view
+  viewMode: '2D',
   cameraSettings: {
     '3D': { position: [0, 5, 10], fov: 50 },
     '2D': { position: [0, 100, 0], zoom: 100 },
@@ -17,21 +17,42 @@ const useStore = create((set, get) => ({
       },
     })),
 
-  walls: [],
-  addWall: (wall) =>
+  wallDimensions: {
+    height: 2.5,
+    width: 0.2,
+  },
+
+  setWallDimensions: (dimensions) =>
     set((state) => ({
-      walls: [...state.walls, { ...wall, type: wall.type || 'solid' }],
+      wallDimensions: { ...state.wallDimensions, ...dimensions },
     })),
 
-  removeWall: (index) =>
+  rooms: [],
+  addRoom: (room) =>
     set((state) => ({
-      walls: state.walls.filter((_, i) => i !== index),
+      rooms: [...state.rooms, room],
     })),
 
-  updateWallType: (index, newType) =>
+  removeRoom: (index) =>
     set((state) => ({
-      walls: state.walls.map((wall, i) => (i === index ? { ...wall, type: newType } : wall)),
+      rooms: state.rooms.filter((_, i) => i !== index),
     })),
+
+  updateRoom: (index, newRoom) =>
+    set((state) => ({
+      rooms: state.rooms.map((room, i) => (i === index ? { ...room, ...newRoom } : room)),
+    })),
+
+  snapPoint: (point, snapDistance = 0.1) => {
+    const rooms = get().rooms
+    for (let room of rooms) {
+      for (let wall of room.walls) {
+        if (point.distanceTo(wall.start) < snapDistance) return wall.start
+        if (point.distanceTo(wall.end) < snapDistance) return wall.end
+      }
+    }
+    return point
+  },
 }))
 
 export default useStore

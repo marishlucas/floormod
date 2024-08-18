@@ -1,34 +1,30 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
-import { Box, Html, Line, Text } from '@react-three/drei'
+import { Line, Html } from '@react-three/drei'
 import useStore from '../helpers/store'
 import * as THREE from 'three'
 import { GRID_SIZE, GRID_DIVISIONS } from '@/constants/gridConfig'
 
-const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
-  const { addWall, removeWall, walls } = useStore()
+const WallPlacer = ({ mode }) => {
+  const { addWall, removeWall, walls, snapPoint } = useStore()
   const viewMode = useStore((state) => state.viewMode)
   const { raycaster, camera, scene, gl } = useThree()
 
-  const [previewWall, setPreviewWall] = useState(null)
-  const [mousePosition, setMousePosition] = useState(new THREE.Vector3())
-  const [rotation, setRotation] = useState(0)
+  const [startPoint, setStartPoint] = useState(null)
+  const [endPoint, setEndPoint] = useState(null)
+  const [mousePosition, setMousePosition] = useState(new THREE.Vector2())
   const [selectedWall, setSelectedWall] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
   const cellSize = GRID_SIZE / GRID_DIVISIONS
   const groundPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), [])
 
-  const snapToCell = useCallback(
-    (x, z) => {
-      const cellX = Math.floor(x / cellSize)
-      const cellZ = Math.floor(z / cellSize)
-      const centerX = (cellX + 0.5) * cellSize
-      const centerZ = (cellZ + 0.5) * cellSize
-      return new THREE.Vector3(centerX, dimensions.height / 2, centerZ)
+  const snapToGrid = useCallback(
+    (point) => {
+      const x = Math.round(point.x / cellSize) * cellSize
+      const z = Math.round(point.y / cellSize) * cellSize
+      return new THREE.Vector2(x, z)
     },
-    [cellSize, dimensions.height],
+    [cellSize],
   )
 
   const updateMousePosition = useCallback(
@@ -46,10 +42,11 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
       const intersect = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
 
       if (intersect) {
-        setMousePosition(snapToCell(intersectionPoint.x, intersectionPoint.z))
+        const snappedPoint = snapToGrid(new THREE.Vector2(intersectionPoint.x, intersectionPoint.z))
+        setMousePosition(snapPoint(snappedPoint))
       }
     },
-    [camera, raycaster, groundPlane, snapToCell, gl],
+    [camera, raycaster, groundPlane, snapToGrid, gl, snapPoint],
   )
 
   useEffect(() => {
@@ -57,97 +54,48 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     return () => window.removeEventListener('mousemove', updateMousePosition)
   }, [updateMousePosition])
 
-  useEffect(() => {
-    if (previewWall) {
-      previewWall.visible = false
-    }
-  }, [mode, previewWall])
-
-  useFrame(() => {
-    if (!previewWall) return
-    if (mode === 'placement') {
-      previewWall.position.copy(mousePosition)
-      previewWall.rotation.y = rotation
-      previewWall.scale.set(dimensions.width, dimensions.height, dimensions.thickness)
-      previewWall.visible = true
-    } else {
-      previewWall.visible = false
-    }
-  })
-
   const handlePlacement = useCallback(
     (event) => {
       if (event.button === 0) {
-        const newWall = {
-          x: mousePosition.x,
-          y: mousePosition.y,
-          z: mousePosition.z,
-          type: selectedWallType,
-          rotation,
-          dimensions,
+        if (!startPoint) {
+          setStartPoint(mousePosition.clone())
+        } else {
+          addWall(startPoint, mousePosition)
+          setStartPoint(null)
+          setEndPoint(null)
         }
-        const collision = walls.some(
-          (wall) => Math.abs(wall.x - newWall.x) < cellSize && Math.abs(wall.z - newWall.z) < cellSize,
-        )
-        if (!collision) addWall(newWall)
-      } else if (event.button === 2) {
-        setRotation((prevRotation) => (prevRotation + Math.PI / 2) % (2 * Math.PI))
       }
     },
-    [addWall, mousePosition, selectedWallType, rotation, walls, cellSize, dimensions],
+    [addWall, mousePosition, startPoint],
   )
 
   const handleModification = useCallback(
     (event) => {
       if (event.button !== 0) return
-      const intersects = raycaster.intersectObjects(scene.children, true)
-      const clickedWall = intersects.find((intersect) => intersect.object.userData.isWall)
-      setSelectedWall(clickedWall ? clickedWall.object.userData.wallIndex : null)
+      const clickedWall = walls.findIndex((wall) => {
+        const line = new THREE.Line3(
+          new THREE.Vector3(wall.start.x, 0, wall.start.y),
+          new THREE.Vector3(wall.end.x, 0, wall.end.y),
+        )
+        const closestPoint = new THREE.Vector3()
+        line.closestPointToPoint(new THREE.Vector3(mousePosition.x, 0, mousePosition.y), true, closestPoint)
+        return closestPoint.distanceTo(new THREE.Vector3(mousePosition.x, 0, mousePosition.y)) < 0.5
+      })
+      setSelectedWall(clickedWall !== -1 ? clickedWall : null)
     },
-    [raycaster, scene.children],
+    [walls, mousePosition],
   )
 
-  const onPointerDown = useCallback((event) => {
-    setIsDragging(false)
-    setDragStart({ x: event.clientX, y: event.clientY })
-  }, [])
-
-  const onPointerUp = useCallback(
+  const onPointerDown = useCallback(
     (event) => {
-      if (!isDragging) {
-        if (mode === 'placement') {
-          handlePlacement(event)
-        } else {
-          handleModification(event)
-        }
-      }
-      setIsDragging(false)
-    },
-    [mode, isDragging, handlePlacement, handleModification],
-  )
-
-  const onPointerMove = useCallback(
-    (event) => {
-      if (event.buttons !== 0) {
-        const dx = event.clientX - dragStart.x
-        const dy = event.clientY - dragStart.y
-        if (Math.sqrt(dx * dx + dy * dy) > 5) {
-          setIsDragging(true)
-        }
+      if (mode === 'placement') {
+        handlePlacement(event)
+      } else {
+        handleModification(event)
       }
     },
-    [dragStart],
+    [mode, handlePlacement, handleModification],
   )
-
-  useEffect(() => {
-    const preview = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.5, transparent: true }),
-    )
-    setPreviewWall(preview)
-    scene.add(preview)
-    return () => scene.remove(preview)
-  }, [scene])
 
   const handleDeleteWall = useCallback(() => {
     if (selectedWall !== null) {
@@ -156,50 +104,46 @@ const WallPlacer = ({ selectedWallType, dimensions, mode }) => {
     }
   }, [removeWall, selectedWall])
 
-  const Wall = useCallback(
-    ({ wall, index }) => {
-      return (
-        <group key={index}>
-          <Box
-            position={[wall.x, wall.y, wall.z]}
-            rotation={[0, wall.rotation, 0]}
-            args={[wall.dimensions.width, wall.dimensions.height, wall.dimensions.thickness]}
-            userData={{ isWall: true, wallIndex: index }}
-          >
-            <meshStandardMaterial
-              color={viewMode === '3D' ? 'red' : 'blue'}
-              opacity={wall.type === 'window' ? 0.5 : 1}
-              transparent={wall.type === 'window'}
-            />
-          </Box>
-          {mode === 'modification' && selectedWall === index && (
-            <Html position={[wall.x, wall.y + wall.dimensions.height / 2, wall.z]}>
-              <button onClick={handleDeleteWall} className='btn btn-error btn-sm'>
-                Delete
-              </button>
-            </Html>
-          )}
-        </group>
-      )
-    },
-    [viewMode, mode, selectedWall, handleDeleteWall],
-  )
+  useFrame(() => {
+    if (startPoint && mode === 'placement') {
+      setEndPoint(mousePosition)
+    }
+  })
 
   return (
     <>
-      <mesh
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerMove={onPointerMove}
-        position={[0, 0, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
+      <mesh onPointerDown={onPointerDown} position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[GRID_SIZE, GRID_SIZE]} />
         <meshBasicMaterial color='transparent' visible={false} />
       </mesh>
       {walls.map((wall, index) => (
-        <Wall key={index} wall={wall} index={index} />
+        <Line
+          key={index}
+          points={[
+            [wall.start.x, 0, wall.start.y],
+            [wall.end.x, 0, wall.end.y],
+          ]}
+          color={viewMode === '3D' ? 'red' : 'blue'}
+          lineWidth={5}
+        />
       ))}
+      {startPoint && endPoint && (
+        <Line
+          points={[
+            [startPoint.x, 0, startPoint.y],
+            [endPoint.x, 0, endPoint.y],
+          ]}
+          color='green'
+          lineWidth={5}
+        />
+      )}
+      {selectedWall !== null && mode === 'modification' && (
+        <Html position={[walls[selectedWall].start.x, 1, walls[selectedWall].start.y]}>
+          <button onClick={handleDeleteWall} className='btn btn-error btn-sm'>
+            Delete Wall
+          </button>
+        </Html>
+      )}
     </>
   )
 }

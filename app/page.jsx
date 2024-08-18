@@ -1,13 +1,13 @@
 'use client'
 import { useState } from 'react'
-import WallPlacer from '@/components/WallPlacer'
-import WallMenu from '@/components/WallMenu'
-import WallDimensionsMenu from '@/components/WallDimensionsMenu'
+import RoomPlacer from '@/components/RoomPlacer'
+import RoomMenu from '@/components/RoomMenu'
 import Scene2D from '@/components/canvas/Scene2D'
 import Scene3D from '@/components/canvas/Scene3D'
 import useStore from '@/helpers/store'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
+import WallDimensionsMenu from '@/components/WallDimensionsMenu'
 
 const View = dynamic(() => import('@/components/canvas/View').then((mod) => mod.View), {
   ssr: false,
@@ -23,8 +23,8 @@ const Common = dynamic(() => import('@/components/canvas/View').then((mod) => mo
 export default function Page() {
   const { setViewMode } = useStore()
   const viewMode = useStore((state) => state.viewMode)
-  const [selectedWallType, setSelectedWallType] = useState('solid')
-  const [dimensions, setDimensions] = useState({ width: 1, height: 2, thickness: 0.2 })
+  const [selectedRoomType, setSelectedRoomType] = useState('square')
+  const [selectedRoomSize, setSelectedRoomSize] = useState('medium')
   const [mode, setMode] = useState('placement')
 
   return (
@@ -51,14 +51,14 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Side menus */}
-      <WallMenu onSelectWallType={setSelectedWallType} />
-      <WallDimensionsMenu dimensions={dimensions} setDimensions={setDimensions} />
+      {/* Side menu */}
+      <RoomMenu onSelectRoomType={setSelectedRoomType} onSelectRoomSize={setSelectedRoomSize} />
+      <WallDimensionsMenu />
 
       {/* Canvas */}
       <View orbit className='size-full'>
         {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
-        <WallPlacer selectedWallType={selectedWallType} dimensions={dimensions} mode={mode} />
+        <RoomPlacer selectedRoomType={selectedRoomType} selectedRoomSize={selectedRoomSize} mode={mode} />
         <Suspense fallback={null}>
           <Common />
         </Suspense>
