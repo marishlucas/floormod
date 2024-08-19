@@ -274,7 +274,7 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
           {room.walls.map((wall, wallIndex) => {
             const isSelected = mode === 'modification' && selectedRoom === roomIndex
             const heightAdjustment = isSelected ? 0.01 : 0 // Raise selected room slightly
-            const sizeMultiplier = isSelected ? 1.01 : 1 // Increase size of selected room slightly
+            const sizeMultiplier = isSelected ? 1.003 : 1 // Increase size of selected room slightly
 
             return (
               <Box
