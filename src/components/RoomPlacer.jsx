@@ -126,7 +126,7 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
 
       return walls
     },
-    [cellSize, snapToGrid],
+    [cellSize, snapToGrid, wallDimensions.width],
   )
 
   const updateMousePosition = useCallback(
