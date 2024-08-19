@@ -41,7 +41,7 @@ export default function Page() {
         <WallDimensionsMenu />
       </div>
 
-      <View orbit className='h-[calc(100vh-4rem)] w-full'>
+      <View orbit className='size-full '>
         {viewMode === '2D' ? <Scene2D /> : <Scene3D />}
         <RoomPlacer selectedRoomType={selectedRoomType} selectedRoomSize={selectedRoomSize} mode={mode} />
         <Suspense fallback={null}>
