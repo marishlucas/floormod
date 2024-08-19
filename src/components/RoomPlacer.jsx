@@ -271,17 +271,35 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
       </mesh>
       {rooms.map((room, roomIndex) => (
         <group key={roomIndex}>
-          {room.walls.map((wall, wallIndex) => (
-            <Box
-              key={`${roomIndex}-${wallIndex}`}
-              position={[(wall.start.x + wall.end.x) / 2, wallDimensions.height / 2, (wall.start.y + wall.end.y) / 2]}
-              args={[wall.start.distanceTo(wall.end), wallDimensions.height, wallDimensions.width]}
-              rotation={[0, Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x), 0]}
-              userData={{ isRoom: true, roomIndex }}
-            >
-              <meshStandardMaterial color={viewMode === '3D' ? 'lightblue' : 'blue'} />
-            </Box>
-          ))}
+          {room.walls.map((wall, wallIndex) => {
+            const isSelected = mode === 'modification' && selectedRoom === roomIndex
+            const heightAdjustment = isSelected ? 0.01 : 0 // Raise selected room slightly
+            const sizeMultiplier = isSelected ? 1.01 : 1 // Increase size of selected room slightly
+
+            return (
+              <Box
+                key={`${roomIndex}-${wallIndex}`}
+                position={[
+                  (wall.start.x + wall.end.x) / 2,
+                  wallDimensions.height / 2 + heightAdjustment,
+                  (wall.start.y + wall.end.y) / 2,
+                ]}
+                args={[
+                  wall.start.distanceTo(wall.end) * sizeMultiplier,
+                  wallDimensions.height * sizeMultiplier,
+                  wallDimensions.width * sizeMultiplier,
+                ]}
+                rotation={[0, Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x), 0]}
+                userData={{ isRoom: true, roomIndex }}
+              >
+                <meshStandardMaterial
+                  color={isSelected ? 'green' : viewMode === '3D' ? 'lightblue' : 'blue'}
+                  transparent={isSelected}
+                  opacity={isSelected ? 0.7 : 1}
+                />
+              </Box>
+            )
+          })}
         </group>
       ))}
       {selectedRoom !== null && mode === 'modification' && (
