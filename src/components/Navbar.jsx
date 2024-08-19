@@ -14,12 +14,14 @@ export default function Navbar({ viewMode, setViewMode, mode, setMode }) {
             xmlns='http://www.w3.org/2000/svg'
             fill='none'
             viewBox='0 0 24 24'
-            className='inline-block w-5 h-5 stroke-current'
+            className='inline-block size-5 stroke-current'
           >
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M4 6h16M4 12h16M4 18h16'></path>
           </svg>
         </button>
-        <div className={`flex-col items-start ${isMenuOpen ? 'flex' : 'hidden'} lg:flex lg:flex-row lg:items-center`}>
+        <div
+          className={` w-full flex-col items-start ${isMenuOpen ? 'flex' : 'hidden'} lg:flex lg:flex-row lg:items-center lg:justify-between`}
+        >
           <div className='mb-2 lg:mb-0 lg:mr-2'>
             <button
               className={`btn btn-primary ${viewMode === '2D' ? '' : 'btn-outline'} btn-sm mr-2`}
