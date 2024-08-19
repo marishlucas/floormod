@@ -38,59 +38,76 @@ const RoomPlacer = ({ selectedRoomType, selectedRoomSize, mode }) => {
       const offsetX = (-width * cellSize) / 2
       const offsetY = (-width * cellSize) / 2
 
+      const padding = wallDimensions.width / 2
+
       let walls = []
       switch (type) {
         case 'square':
           walls = [
-            { start: new THREE.Vector2(offsetX, offsetY), end: new THREE.Vector2(offsetX + width * cellSize, offsetY) },
             {
-              start: new THREE.Vector2(offsetX + width * cellSize, offsetY),
-              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX - padding, offsetY),
+              end: new THREE.Vector2(offsetX + width * cellSize + padding, offsetY),
             },
             {
-              start: new THREE.Vector2(offsetX + width * cellSize, offsetY + width * cellSize),
-              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY - padding),
+              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + width * cellSize + padding),
             },
-            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
+            {
+              start: new THREE.Vector2(offsetX + width * cellSize + padding, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX - padding, offsetY + width * cellSize),
+            },
+            {
+              start: new THREE.Vector2(offsetX, offsetY + width * cellSize + padding),
+              end: new THREE.Vector2(offsetX, offsetY - padding),
+            },
           ]
           break
         case 'rectangle':
           walls = [
             {
-              start: new THREE.Vector2(offsetX, offsetY),
-              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY),
+              start: new THREE.Vector2(offsetX - padding, offsetY),
+              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize + padding, offsetY),
             },
             {
-              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY),
-              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY - padding),
+              end: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY + width * cellSize + padding),
             },
             {
-              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize, offsetY + width * cellSize),
-              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX + width * 1.5 * cellSize + padding, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX - padding, offsetY + width * cellSize),
             },
-            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
+            {
+              start: new THREE.Vector2(offsetX, offsetY + width * cellSize + padding),
+              end: new THREE.Vector2(offsetX, offsetY - padding),
+            },
           ]
           break
         case 'L-shape':
           walls = [
-            { start: new THREE.Vector2(offsetX, offsetY), end: new THREE.Vector2(offsetX + width * cellSize, offsetY) },
             {
-              start: new THREE.Vector2(offsetX + width * cellSize, offsetY),
-              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + (width * cellSize) / 2),
+              start: new THREE.Vector2(offsetX - padding, offsetY),
+              end: new THREE.Vector2(offsetX + width * cellSize + padding, offsetY),
             },
             {
-              start: new THREE.Vector2(offsetX + width * cellSize, offsetY + (width * cellSize) / 2),
-              end: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + (width * cellSize) / 2),
+              start: new THREE.Vector2(offsetX + width * cellSize, offsetY - padding),
+              end: new THREE.Vector2(offsetX + width * cellSize, offsetY + (width * cellSize) / 2 + padding),
             },
             {
-              start: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + (width * cellSize) / 2),
-              end: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX + width * cellSize + padding, offsetY + (width * cellSize) / 2),
+              end: new THREE.Vector2(offsetX + (width * cellSize) / 2 - padding, offsetY + (width * cellSize) / 2),
             },
             {
-              start: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + width * cellSize),
-              end: new THREE.Vector2(offsetX, offsetY + width * cellSize),
+              start: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + (width * cellSize) / 2 - padding),
+              end: new THREE.Vector2(offsetX + (width * cellSize) / 2, offsetY + width * cellSize + padding),
             },
-            { start: new THREE.Vector2(offsetX, offsetY + width * cellSize), end: new THREE.Vector2(offsetX, offsetY) },
+            {
+              start: new THREE.Vector2(offsetX + (width * cellSize) / 2 + padding, offsetY + width * cellSize),
+              end: new THREE.Vector2(offsetX - padding, offsetY + width * cellSize),
+            },
+            {
+              start: new THREE.Vector2(offsetX, offsetY + width * cellSize + padding),
+              end: new THREE.Vector2(offsetX, offsetY - padding),
+            },
           ]
           break
       }
